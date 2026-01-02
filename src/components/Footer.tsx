@@ -1,9 +1,8 @@
-import { forwardRef } from 'react';
 import { Link } from 'react-router-dom';
 
-export const Footer = forwardRef<HTMLElement>(function Footer(_, ref) {
+export function Footer() {
   return (
-    <footer ref={ref} className="bg-muted border-t border-border mt-16">
+    <footer className="bg-muted border-t border-border mt-16">
       <div className="container mx-auto px-4 py-12">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div>
@@ -56,4 +55,4 @@ export const Footer = forwardRef<HTMLElement>(function Footer(_, ref) {
       </div>
     </footer>
   );
-});
+}
