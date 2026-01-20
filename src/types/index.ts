@@ -64,3 +64,12 @@ export interface Favorite {
 }
 
 export type Category = 'All' | 'Beach' | 'Mountain' | 'City' | 'Lake' | 'Countryside' | 'Desert';
+
+export type AppRole = 'admin' | 'moderator' | 'user';
+
+export interface UserRole {
+  id: string;
+  user_id: string;
+  role: AppRole;
+  created_at: string;
+}
