@@ -1,5 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { Search, Menu, User, Heart, Globe } from 'lucide-react';
+import { Search, Menu, User, Heart, Globe, Plus, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -11,7 +11,7 @@ import {
 import { useAuth } from '@/hooks/useAuth';
 
 export function Header() {
-  const { user, signOut } = useAuth();
+  const { user, isAdmin, signOut } = useAuth();
   const navigate = useNavigate();
 
   const handleSignOut = async () => {
@@ -49,9 +49,30 @@ export function Header() {
 
           {/* Right Section */}
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="sm" className="hidden md:flex">
-              Become a Host
-            </Button>
+            {user && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="hidden md:flex items-center gap-2"
+                onClick={() => navigate('/add-listing')}
+              >
+                <Plus className="w-4 h-4" />
+                Add Listing
+              </Button>
+            )}
+            
+            {isAdmin && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="hidden md:flex items-center gap-2 text-primary"
+                onClick={() => navigate('/admin')}
+              >
+                <Shield className="w-4 h-4" />
+                Admin
+              </Button>
+            )}
+
             <Button variant="ghost" size="icon" className="hidden md:flex">
               <Globe className="w-4 h-4" />
             </Button>
@@ -71,10 +92,26 @@ export function Header() {
                     <DropdownMenuItem onClick={() => navigate('/profile')}>
                       Profile
                     </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => navigate('/add-listing')}>
+                      <Plus className="w-4 h-4 mr-2" />
+                      Add Listing
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => navigate('/my-listings')}>
+                      My Listings
+                    </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => navigate('/favorites')}>
                       <Heart className="w-4 h-4 mr-2" />
                       Wishlists
                     </DropdownMenuItem>
+                    {isAdmin && (
+                      <>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem onClick={() => navigate('/admin')} className="text-primary">
+                          <Shield className="w-4 h-4 mr-2" />
+                          Admin Dashboard
+                        </DropdownMenuItem>
+                      </>
+                    )}
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={handleSignOut}>
                       Log out
