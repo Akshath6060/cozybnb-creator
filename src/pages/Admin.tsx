@@ -94,10 +94,14 @@ export default function Admin() {
   };
 
   useEffect(() => {
+    if (!authLoading && !user) {
+      navigate('/auth');
+      return;
+    }
     if (!authLoading && user && isAdmin) {
       fetchData();
     }
-  }, [user, isAdmin, authLoading]);
+  }, [user, isAdmin, authLoading, navigate]);
 
   const handleDeleteProperty = async (id: string) => {
     const { error } = await supabase.from('properties').delete().eq('id', id);
@@ -109,7 +113,7 @@ export default function Admin() {
     }
   };
 
-  if (authLoading || loading) {
+  if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -118,7 +122,6 @@ export default function Admin() {
   }
 
   if (!user) {
-    navigate('/auth');
     return null;
   }
 
