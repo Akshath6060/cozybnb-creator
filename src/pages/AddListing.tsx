@@ -18,6 +18,7 @@ import {
 } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { z } from 'zod';
+import { ArrowLeft } from 'lucide-react';
 
 const listingSchema = z.object({
   title: z.string().min(5, 'Title must be at least 5 characters').max(100),
@@ -134,6 +135,16 @@ export default function AddListing() {
     <div className="min-h-screen flex flex-col">
       <Header />
       <main className="container mx-auto px-4 py-8 flex-1 max-w-3xl">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="mb-4 gap-2"
+          onClick={() => navigate(-1)}
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Back
+        </Button>
+        
         <Card>
           <CardHeader>
             <CardTitle className="text-2xl">Create a New Listing</CardTitle>
