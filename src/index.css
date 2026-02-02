@@ -1,4 +1,41 @@
 @tailwind base;
+
+/* Leaflet custom marker styles */
+.price-marker {
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+  padding: 4px 8px;
+  border-radius: 9999px;
+  font-size: 12px;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  border: 1px solid hsl(var(--border));
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.price-marker:hover,
+.price-marker.selected {
+  background-color: hsl(var(--foreground));
+  color: hsl(var(--background));
+  transform: scale(1.1);
+}
+
+.property-popup .leaflet-popup-content-wrapper {
+  padding: 0;
+  border-radius: 0.75rem;
+  overflow: hidden;
+}
+
+.property-popup .leaflet-popup-content {
+  margin: 0;
+  width: auto !important;
+}
+
+.property-popup .leaflet-popup-tip {
+  background: hsl(var(--card));
+}
 @tailwind components;
 @tailwind utilities;
 
