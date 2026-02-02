@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -7,12 +7,15 @@ import { Link } from 'react-router-dom';
 import { Star } from 'lucide-react';
 
 // Fix for default marker icons in Leaflet with bundlers
-delete (L.Icon.Default.prototype as any)._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
-  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
-  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
-});
+// This needs to run once at module load
+if (typeof window !== 'undefined') {
+  delete (L.Icon.Default.prototype as any)._getIconUrl;
+  L.Icon.Default.mergeOptions({
+    iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
+    iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
+    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
+  });
+}
 
 // Custom price marker icon
 const createPriceMarker = (price: number, isSelected: boolean) => {
@@ -57,20 +60,15 @@ const getPropertyCoordinates = (property: Property): [number, number] => {
   return [lat, lng];
 };
 
-export function PropertyMap({
+function PropertyMapContent({
   properties,
   selectedPropertyId,
   onPropertySelect,
-  center = [39.8283, -98.5795], // Center of US
-  zoom = 4,
-}: PropertyMapProps) {
+  center,
+  zoom,
+}: Required<Pick<PropertyMapProps, 'center' | 'zoom'>> & Omit<PropertyMapProps, 'center' | 'zoom'>) {
   return (
-    <MapContainer
-      center={center}
-      zoom={zoom}
-      className="w-full h-full rounded-lg"
-      scrollWheelZoom={true}
-    >
+    <>
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -118,6 +116,34 @@ export function PropertyMap({
           </Marker>
         );
       })}
+    </>
+  );
+}
+
+export function PropertyMap({
+  properties,
+  selectedPropertyId,
+  onPropertySelect,
+  center = [39.8283, -98.5795], // Center of US
+  zoom = 4,
+}: PropertyMapProps) {
+  // Memoize the center to prevent unnecessary re-renders
+  const mapCenter = useMemo(() => center, [center[0], center[1]]);
+  
+  return (
+    <MapContainer
+      center={mapCenter}
+      zoom={zoom}
+      className="w-full h-full rounded-lg"
+      scrollWheelZoom={true}
+    >
+      <PropertyMapContent
+        properties={properties}
+        selectedPropertyId={selectedPropertyId}
+        onPropertySelect={onPropertySelect}
+        center={mapCenter}
+        zoom={zoom}
+      />
     </MapContainer>
   );
 }
