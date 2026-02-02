@@ -29,6 +29,7 @@ import {
   CalendarIcon,
   Minus,
   Plus,
+  ArrowLeft,
 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
@@ -200,6 +201,17 @@ export default function PropertyDetails() {
       <Header />
 
       <main className="container mx-auto px-4 py-8 flex-1">
+        {/* Back Button */}
+        <Button
+          variant="ghost"
+          size="sm"
+          className="mb-4 gap-2"
+          onClick={() => navigate(-1)}
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Back
+        </Button>
+
         {/* Title Section */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
           <div>

@@ -30,7 +30,7 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
-import { Users, Home, Calendar, Star, Trash2, Shield, Search } from 'lucide-react';
+import { Users, Home, Calendar, Star, Trash2, Shield, Search, ArrowLeft } from 'lucide-react';
 import type { Property, Profile } from '@/types';
 
 interface Booking {
@@ -154,6 +154,16 @@ export default function Admin() {
     <div className="min-h-screen flex flex-col">
       <Header />
       <main className="container mx-auto px-4 py-8 flex-1">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="mb-4 gap-2"
+          onClick={() => navigate(-1)}
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Back
+        </Button>
+
         <div className="flex items-center gap-3 mb-8">
           <Shield className="w-8 h-8 text-primary" />
           <h1 className="text-3xl font-bold">Admin Dashboard</h1>
