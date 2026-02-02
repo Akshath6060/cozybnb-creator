@@ -7,7 +7,7 @@ import { Footer } from '@/components/Footer';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Plus, Edit, Trash2, Eye, Star } from 'lucide-react';
+import { Plus, Edit, Trash2, Eye, Star, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
 import type { Property } from '@/types';
 import {
@@ -81,6 +81,16 @@ export default function MyListings() {
     <div className="min-h-screen flex flex-col">
       <Header />
       <main className="container mx-auto px-4 py-8 flex-1">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="mb-4 gap-2"
+          onClick={() => navigate(-1)}
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Back
+        </Button>
+
         <div className="flex items-center justify-between mb-8">
           <h1 className="text-3xl font-bold">My Listings</h1>
           <Button onClick={() => navigate('/add-listing')}>

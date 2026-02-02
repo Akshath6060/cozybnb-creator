@@ -11,7 +11,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { User, Calendar, MapPin } from 'lucide-react';
+import { User, Calendar, MapPin, ArrowLeft } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 export default function Profile() {
   const { user, loading: authLoading } = useAuth();
@@ -72,6 +73,17 @@ export default function Profile() {
       <Header />
 
       <main className="container mx-auto px-4 py-8 flex-1">
+        {/* Back Button */}
+        <Button
+          variant="ghost"
+          size="sm"
+          className="mb-4 gap-2"
+          onClick={() => navigate(-1)}
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Back
+        </Button>
+
         {/* Profile Header */}
         <div className="flex items-center gap-4 mb-8">
           <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center">
