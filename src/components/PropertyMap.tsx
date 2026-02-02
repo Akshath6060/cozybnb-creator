@@ -1,13 +1,9 @@
-import { useEffect, useMemo } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import { useEffect, useRef } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Property } from '@/types';
-import { Link } from 'react-router-dom';
-import { Star } from 'lucide-react';
 
 // Fix for default marker icons in Leaflet with bundlers
-// This needs to run once at module load
 if (typeof window !== 'undefined') {
   delete (L.Icon.Default.prototype as any)._getIconUrl;
   L.Icon.Default.mergeOptions({
@@ -17,32 +13,10 @@ if (typeof window !== 'undefined') {
   });
 }
 
-// Custom price marker icon
-const createPriceMarker = (price: number, isSelected: boolean) => {
-  return L.divIcon({
-    className: 'custom-price-marker',
-    html: `<div class="price-marker ${isSelected ? 'selected' : ''}">$${price}</div>`,
-    iconSize: [60, 30],
-    iconAnchor: [30, 15],
-  });
-};
-
 interface PropertyMapProps {
   properties: Property[];
   selectedPropertyId?: string;
   onPropertySelect?: (propertyId: string) => void;
-  center?: [number, number];
-  zoom?: number;
-}
-
-function MapUpdater({ center, zoom }: { center: [number, number]; zoom: number }) {
-  const map = useMap();
-  
-  useEffect(() => {
-    map.setView(center, zoom);
-  }, [center, zoom, map]);
-  
-  return null;
 }
 
 // Mock coordinates for demo - in production, you'd store lat/lng in your properties table
@@ -60,90 +34,108 @@ const getPropertyCoordinates = (property: Property): [number, number] => {
   return [lat, lng];
 };
 
-function PropertyMapContent({
-  properties,
-  selectedPropertyId,
-  onPropertySelect,
-  center,
-  zoom,
-}: Required<Pick<PropertyMapProps, 'center' | 'zoom'>> & Omit<PropertyMapProps, 'center' | 'zoom'>) {
-  return (
-    <>
-      <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-      />
-      <MapUpdater center={center} zoom={zoom} />
-      
-      {properties.map((property) => {
-        const coords = getPropertyCoordinates(property);
-        const isSelected = property.id === selectedPropertyId;
-        
-        return (
-          <Marker
-            key={property.id}
-            position={coords}
-            icon={createPriceMarker(property.price_per_night, isSelected)}
-            eventHandlers={{
-              click: () => onPropertySelect?.(property.id),
-            }}
-          >
-            <Popup className="property-popup">
-              <Link 
-                to={`/property/${property.id}`}
-                className="block w-64 no-underline text-foreground"
-              >
-                <img
-                  src={property.image_url || 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=400'}
-                  alt={property.title}
-                  className="w-full h-32 object-cover rounded-t-lg"
-                />
-                <div className="p-3 bg-card rounded-b-lg">
-                  <h3 className="font-semibold text-sm line-clamp-1">{property.title}</h3>
-                  <p className="text-xs text-muted-foreground mt-1">{property.location}</p>
-                  <div className="flex items-center justify-between mt-2">
-                    <span className="font-semibold">${property.price_per_night}/night</span>
-                    {property.rating && (
-                      <span className="flex items-center gap-1 text-xs">
-                        <Star className="w-3 h-3 fill-foreground" />
-                        {property.rating}
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </Link>
-            </Popup>
-          </Marker>
-        );
-      })}
-    </>
-  );
-}
-
 export function PropertyMap({
   properties,
   selectedPropertyId,
   onPropertySelect,
-  center = [39.8283, -98.5795], // Center of US
-  zoom = 4,
 }: PropertyMapProps) {
-  // Memoize the center to prevent unnecessary re-renders
-  const mapCenter = useMemo(() => center, [center[0], center[1]]);
-  
+  const mapRef = useRef<L.Map | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const markersRef = useRef<Map<string, L.Marker>>(new Map());
+
+  // Initialize map
+  useEffect(() => {
+    if (!containerRef.current || mapRef.current) return;
+
+    mapRef.current = L.map(containerRef.current).setView([39.8283, -98.5795], 4);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    }).addTo(mapRef.current);
+
+    return () => {
+      if (mapRef.current) {
+        mapRef.current.remove();
+        mapRef.current = null;
+      }
+    };
+  }, []);
+
+  // Update markers when properties change
+  useEffect(() => {
+    if (!mapRef.current) return;
+
+    // Remove old markers
+    markersRef.current.forEach((marker) => marker.remove());
+    markersRef.current.clear();
+
+    // Add new markers
+    properties.forEach((property) => {
+      const coords = getPropertyCoordinates(property);
+      const isSelected = property.id === selectedPropertyId;
+
+      const priceIcon = L.divIcon({
+        className: 'custom-price-marker',
+        html: `<div class="price-marker ${isSelected ? 'selected' : ''}">$${property.price_per_night}</div>`,
+        iconSize: [60, 30],
+        iconAnchor: [30, 15],
+      });
+
+      const marker = L.marker(coords, { icon: priceIcon })
+        .addTo(mapRef.current!)
+        .on('click', () => onPropertySelect?.(property.id));
+
+      // Add popup
+      const popupContent = `
+        <a href="/property/${property.id}" class="block w-64 no-underline" style="color: inherit;">
+          <img
+            src="${property.image_url || 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=400'}"
+            alt="${property.title}"
+            style="width: 100%; height: 128px; object-fit: cover; border-radius: 8px 8px 0 0;"
+          />
+          <div style="padding: 12px; background: white; border-radius: 0 0 8px 8px;">
+            <h3 style="font-weight: 600; font-size: 14px; margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${property.title}</h3>
+            <p style="font-size: 12px; color: #666; margin: 4px 0 0 0;">${property.location}</p>
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px;">
+              <span style="font-weight: 600;">$${property.price_per_night}/night</span>
+              ${property.rating ? `<span style="font-size: 12px;">★ ${property.rating}</span>` : ''}
+            </div>
+          </div>
+        </a>
+      `;
+
+      marker.bindPopup(popupContent, {
+        maxWidth: 280,
+        className: 'property-popup',
+      });
+
+      markersRef.current.set(property.id, marker);
+    });
+  }, [properties, selectedPropertyId, onPropertySelect]);
+
+  // Update marker styles when selection changes
+  useEffect(() => {
+    markersRef.current.forEach((marker, id) => {
+      const property = properties.find((p) => p.id === id);
+      if (!property) return;
+
+      const isSelected = id === selectedPropertyId;
+      const priceIcon = L.divIcon({
+        className: 'custom-price-marker',
+        html: `<div class="price-marker ${isSelected ? 'selected' : ''}">$${property.price_per_night}</div>`,
+        iconSize: [60, 30],
+        iconAnchor: [30, 15],
+      });
+
+      marker.setIcon(priceIcon);
+    });
+  }, [selectedPropertyId, properties]);
+
   return (
-    <MapContainer
-      center={mapCenter}
-      zoom={zoom}
+    <div 
+      ref={containerRef} 
       className="w-full h-full rounded-lg"
-      scrollWheelZoom={true}
-    >
-      <PropertyMapContent
-        properties={properties}
-        selectedPropertyId={selectedPropertyId}
-        onPropertySelect={onPropertySelect}
-        center={mapCenter}
-        zoom={zoom}
-      />
-    </MapContainer>
+      style={{ minHeight: '400px' }}
+    />
   );
 }

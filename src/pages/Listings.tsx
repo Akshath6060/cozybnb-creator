@@ -1,9 +1,10 @@
-import { useState, useEffect, lazy, Suspense } from 'react';
+import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Header } from '@/components/Header';
 import { CategoryFilter } from '@/components/CategoryFilter';
 import { PropertyCard } from '@/components/PropertyCard';
 import { Footer } from '@/components/Footer';
+import { PropertyMap } from '@/components/PropertyMap';
 import { supabase } from '@/integrations/supabase/client';
 import { Property, Category } from '@/types';
 import { useAuth } from '@/hooks/useAuth';
@@ -19,9 +20,6 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
-
-// Lazy load the map component to avoid SSR issues with Leaflet
-const PropertyMap = lazy(() => import('@/components/PropertyMap').then(mod => ({ default: mod.PropertyMap })));
 
 export default function Listings() {
   const [searchParams] = useSearchParams();
@@ -207,17 +205,11 @@ export default function Listings() {
           {/* Map view */}
           {showMap && (
             <div className="w-1/2 lg:w-2/5 sticky top-0 h-[calc(100vh-200px)]">
-              <Suspense fallback={
-                <div className="w-full h-full bg-muted rounded-lg flex items-center justify-center">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                </div>
-              }>
-                <PropertyMap
-                  properties={properties}
-                  selectedPropertyId={selectedPropertyId}
-                  onPropertySelect={setSelectedPropertyId}
-                />
-              </Suspense>
+              <PropertyMap
+                properties={properties}
+                selectedPropertyId={selectedPropertyId}
+                onPropertySelect={setSelectedPropertyId}
+              />
             </div>
           )}
         </div>
